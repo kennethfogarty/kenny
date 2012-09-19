@@ -57,11 +57,11 @@ GetSchemaIncludes:                                  /*                  */
          g.0SchemaInclude = g.0SchemaInclude       ,/*                  */
          ||"("||Word(wSchemaInclude,Loop)||"',"     /*                  */
          When Loop = Words(wSchemaInclude) Then     /*                  */
-		 g.0SchemaInclude = g.0SchemaInclude       ,/* Suffix with ')'  */
-		 "'"||Word(wSchemaInclude,Loop)||"')"       /*                  */
-		 Otherwise                                  /*                  */
-		 g.0SchemaInclude = g.0SchemaInclude       ,/* Quote the rest   */
-		 "'"||Word(wSchemaInclude,Loop)||"',"       /*                  */
+	 g.0SchemaInclude = g.0SchemaInclude       ,/* Suffix with ')'  */
+	 "'"||Word(wSchemaInclude,Loop)||"')"       /*                  */
+	 Otherwise                                  /*                  */
+	 g.0SchemaInclude = g.0SchemaInclude       ,/* Quote the rest   */
+	 "'"||Word(wSchemaInclude,Loop)||"',"       /*                  */
       End                                           /*                  */
    End                                              /*                  */
                                                     /*                  */
