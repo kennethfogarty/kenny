@@ -65,4 +65,98 @@ GetSchemaIncludes:                                  /*                  */
       End                                           /*                  */
    End                                              /*                  */
                                                     /*                  */
-Return wRc                                          /*                  */													
+Return wRc                                          /*                  */
+                                                    /*                  */
+GetWlmExcludes:                                     /*                  */
+                                                    /*                  */
+   Procedure Expose g.                              /*                  */
+                                                    /*                  */
+   wRc = 0                                          /*                  */
+   wWlmExclude = ReadFile(WLMENVDD WLMENV)          /* Read WLM Excludes*/
+                                                    /*                  */
+/************************************************************************/
+/* This simply constructs an in-list that will be used in the query.    */
+/************************************************************************/
+                                                    /*                  */
+   Do Loop = 1 To Words(wWlmExclude)                /*                  */
+      Select                                        /*                  */
+         When Loop < 2 Then                         /*                  */
+         g.0WlmExclude = g.0WlmExclude             ,/*                  */
+         ||"('"||Word(wWlmExclude,Loop)||"',"       /* Prefix with '('  */
+         When Loop = Words(wWlmExclude) Then        /*                  */
+         g.0WlmExclude = g.0WlmExclude             ,/* Suffix with ')'  */
+         "'"||Word(wWlmExclude,Loop)||"')"          /*                  */
+         Otherwise                                  /*                  */
+         g.0WlmExclude = g.0WlmExclude             ,/*                  */
+         "'"||Word(wWlmExlcude,Loop)||"',"          /*                  */
+      End                                           /*                  */
+   End                                              /*                  */
+                                                    /*                  */
+Return wRc                                          /*                  */
+                                                    /*                  */
+ConstructQuery:                                     /*                  */
+                                                    /*                  */
+   Procedure Expose g.                              /*                  */
+                                                    /*                  */
+/************************************************************************/
+/* This is the start of the query                                       */
+/************************************************************************/
+													/*                  */
+   wQuery = "SELECT DISTINCT WLM_ENVIRONMENT"      ,/*                  */
+   "FROM SYSIBM.SYSROUTINES"                        /*                  */
+													/*                  */
+/************************************************************************/
+/* If we have schemas to include, we include them here.                 */
+/************************************************************************/
+                                                    /*                  */
+   If Words(g.0SchemaInclude) <> 0 Then            ,/*                  */
+      wQuery = wQuery "WHERE SCHEMA IN"            ,/*                  */
+	  g.0SchemaInclude                              /*                  */
+	                                                /*                  */
+/************************************************************************/
+/* If we have schemas AND wlm application environments, add the AND     */
+/************************************************************************/
+   If Words(g.0SchemaInclude) > 0 &                ,/*                  */
+      Words(g.0WlmExclude) > 0 Then                ,/*                  */
+      wQuery = wQuery "AND"                         /*                  */
+													/*                  */	  
+/************************************************************************/
+/* If we have WLM Application Environments to exclude, we add them here.*/
+/************************************************************************/
+                                                    /*                  */
+   If Words(g.0WlmExclude) <> 0 Then               ,/*                  */
+      wQuery = wQuery "WLM_ENVIRONMENT NOT IN"     ,/*                  */
+	  g.0WlmExclude                                 /*                  */
+  													/*                  */
+/************************************************************************/
+/* Here we add the fetch only and uncommitted read clauses.             */
+/************************************************************************/
+													/*                  */
+	wQuery = wQuery "FOR FETCH ONLY WITH UR"        /*                  */
+													/*                  */
+	If g.0Debug Then Do                             /* Debugging        */
+	   Say "Generated query follows:"               /*                  */
+	   Say wQuery                                   /*                  */
+	End                                             /*                  */
+													/*                  */
+/************************************************************************/
+/* Create the REXX/DB2 host environment                                 */
+/************************************************************************/
+													/*                  */
+   Address TSO "SUBCOM DSNREXX"                     /* Db2 env set up?  */
+   wRc = rc                                         /* Get return code  */
+													/*                  */
+   If wRc Then Do                                   /* No               */
+      wRc = RXSUBCOM('ADD','DSNREXX','DSNREXX')     /* Create one.      */
+   End                                              /*                  */
+													/*                  */
+   Address DSNREXX "CONNECT" g.0Subsystem           /* Connect to DB2   */
+   If SQLCODE <> 0 Then Call ShowSQLCA              /*                  */
+													/*                  */
+   wRc = SubmitQuery(wQuery)                        /* Submit query     */
+   Address DSNREXX "DISCONNECT"                     /* Disconnect       */
+													/*                  */
+Return wRc                                          /*                  */
+													/*                  */
+SubmitQuery:                                        /*                  */
+													/*                  */													
