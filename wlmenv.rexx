@@ -22,8 +22,8 @@
                                                     /*                  */   
    If Pos("DEBUG"_,wOptions) > 0 Then Do            /* Debug Mode       */
       Say ""                                        /*                  */
-	  Say "DEBUG MODE ON"                            /*                  */
-	  g.0Debug = 1                                   /* Debug mode on    */
+	  Say "DEBUG MODE ON"                       /*                  */
+	  g.0Debug = 1                              /* Debug mode on    */
    End                                              /*                  */
    Else g.0Debug = 0                                /* Debug mode off   */
                                                     /*                  */
@@ -62,11 +62,11 @@ GetSchemaIncludes:                                  /*                  */
          g.0SchemaInclude = g.0SchemaInclude       ,/*                  */
          ||"("||Word(wSchemaInclude,Loop)||"',"     /*                  */
          When Loop = Words(wSchemaInclude) Then     /*                  */
-	 g.0SchemaInclude = g.0SchemaInclude            ,/* Suffix with ')'  */
-	 "'"||Word(wSchemaInclude,Loop)||"')"            /*                  */
-	 Otherwise                                       /*                  */
-	 g.0SchemaInclude = g.0SchemaInclude            ,/* Quote the rest   */
-	 "'"||Word(wSchemaInclude,Loop)||"',"            /*                  */
+	 g.0SchemaInclude = g.0SchemaInclude       ,/* Suffix with ')'  */
+	 "'"||Word(wSchemaInclude,Loop)||"')"       /*                  */
+	 Otherwise                                  /*                  */
+	 g.0SchemaInclude = g.0SchemaInclude       ,/* Quote the rest   */
+	 "'"||Word(wSchemaInclude,Loop)||"',"       /*                  */
       End                                           /*                  */
    End                                              /*                  */
                                                     /*                  */
@@ -106,18 +106,18 @@ ConstructQuery:                                     /*                  */
 /************************************************************************/
 /* This is the start of the query                                       */
 /************************************************************************/
-													             /*                  */
+						    /*                  */
    wQuery = "SELECT DISTINCT WLM_ENVIRONMENT"      ,/*                  */
    "FROM SYSIBM.SYSROUTINES"                        /*                  */
-													             /*                  */
+						    /*                  */
 /************************************************************************/
 /* If we have schemas to include, we include them here.                 */
 /************************************************************************/
                                                     /*                  */
    If Words(g.0SchemaInclude) <> 0 Then            ,/*                  */
       wQuery = wQuery "WHERE SCHEMA IN"            ,/*                  */
-	  g.0SchemaInclude                               /*                  */
-	                                                 /*                  */
+	  g.0SchemaInclude                          /*                  */
+	                                            /*                  */
 /************************************************************************/
 /* If we have schemas AND wlm application environments, add the AND     */
 /************************************************************************/
@@ -131,40 +131,40 @@ ConstructQuery:                                     /*                  */
                                                     /*                  */
    If Words(g.0WlmExclude) <> 0 Then               ,/*                  */
       wQuery = wQuery "WLM_ENVIRONMENT NOT IN"     ,/*                  */
-	  g.0WlmExclude                                  /*                  */
-  													             /*                  */
+	  g.0WlmExclude                             /*                  */
+  						    /*                  */
 /************************************************************************/
 /* Here we add the fetch only and uncommitted read clauses.             */
 /************************************************************************/
-													             /*                  */
-	wQuery = wQuery "FOR FETCH ONLY WITH UR"         /*                  */
-													             /*                  */
-	If g.0Debug Then Do                              /* Debugging        */
-	   Say "Generated query follows:"                /*                  */
-	   Say wQuery                                    /*                  */
-	End                                              /*                  */
-													             /*                  */
+						    /*                  */
+	wQuery = wQuery "FOR FETCH ONLY WITH UR"    /*                  */
+						    /*                  */
+	If g.0Debug Then Do                         /* Debugging        */
+	   Say "Generated query follows:"           /*                  */
+	   Say wQuery                               /*                  */
+	End                                         /*                  */
+						    /*                  */
 /************************************************************************/
 /* Create the REXX/DB2 host environment                                 */
 /************************************************************************/
-													             /*                  */
+						    /*                  */
    Address TSO "SUBCOM DSNREXX"                     /* Db2 env set up?  */
    wRc = rc                                         /* Get return code  */
-													             /*                  */
+						    /*                  */
    If wRc Then Do                                   /* No               */
       wRc = RXSUBCOM('ADD','DSNREXX','DSNREXX')     /* Create one.      */
    End                                              /*                  */
-													             /*                  */
+						    /*                  */
    Address DSNREXX "CONNECT" g.0Subsystem           /* Connect to DB2   */
    If SQLCODE <> 0 Then Call ShowSQLCA              /*                  */
-													             /*                  */
+						    /*                  */
    wRc = SubmitQuery(wQuery)                        /* Submit query     */
    Address DSNREXX "DISCONNECT"                     /* Disconnect       */
-													             /*                  */
+						    /*                  */
 Return wRc                                          /*                  */
-													             /*                  */
+						    /*                  */
 SubmitQuery:                                        /*                  */
-													             /*                  */
+						    /*                  */
    Arg wQuery                                       /* Get query        */
                                                     /*                  */
    Address DSNREXX                                  /*                  */
@@ -181,9 +181,9 @@ SubmitQuery:                                        /*                  */
                                                     /*                  */
    Do Forever                                       /* Loop             */
       Address DSNREXX                               /*                  */
-	   "EXECSQL FETCH C1 USING DESCRIPTOR :OUT"      /* Fetch next row   */
-	   If SQLCODE = 0 Then Do                        /* All is good      */
-	                                                 /*                  */
+	   "EXECSQL FETCH C1 USING DESCRIPTOR :OUT" /* Fetch next row   */
+	   If SQLCODE = 0 Then Do                   /* All is good      */
+	                                            /*                  */
 /************************************************************************/
 /* Process the fetched row of information.                              */
 /************************************************************************/
@@ -311,61 +311,74 @@ ShowSQLCA:                                          /*                  */
    Left(SQLWARNA.1)||,                              /*                  */
    Left(SQLSTATE,5)||,                              /*                  */
    MESSAGE_LLEN = 79                                /*                  */
-   MESSAGE_LINES = 12
+   MESSAGE_LINES = 12                               /*                  */
    MESSAGE_AREA = X2C(D2X(MESSAGE_LLEN*MESSAGE_LINES,4))||,
-   Copies(' ',MESSAGE_LLEN*MESSAGE_LINES)
-   MESSAGE_LRECL = X2C(D2X(MESSAGE_LLEN,8))
+   Copies(' ',MESSAGE_LLEN*MESSAGE_LINES)           /*                  */
+   MESSAGE_LRECL = X2C(D2X(MESSAGE_LLEN,8))         /*                  */
    Address LINKPGM "DSNTIAR SQLCA MESSAGE_AREA MESSAGE_LRECL"
-   MESSAGE_LINE_START = 3
-   
-   Do Loop = 1 To MESSAGE_LINES
-      MESSAGE.LINE = ,
+   MESSAGE_LINE_START = 3                           /*                  */
+                                                    /*                  */
+   Do Loop = 1 To MESSAGE_LINES                     /*                  */
+      MESSAGE.LINE = ,                              /*                  */
       Substr(MESSAGE_AREA,MESSAGE_LINE_START,MESSAGE_LLEN)
       MESSAGE_LINE_START = MESSAGE_LINE_START + MESSAGE_LLEN
-      If MESSAGE_LINE <> '' Then Do
-         Say Message_Line
-      End
-   End
-Return
-
-ExitRC:
-
-   Arg wRc
-   Exit wRc
-
-Return 0
-
-ReadFile:
-
-   Procedure Expose g.
-   
-   Arg wDDname wDirective
-   
-   wRc = 0
-   
-   wSchemaInclude = ""
-   wWlmExclude = ""
-   
-   Address TSO
-   "EXECIO * DISKR "||wDDname||" (STEM Temp. FINIS)"
-   wRc = rc
-   
-   If wRc <> 0 Then Call ExitRc(wRc)
-   
-   Do Loop = 1 To Temp.0
-      Temp.Loop = Strip(Temp.Loop)
-      If Substr(Temp.Loop,1,1) = "#" Then Iterate
-      
-      Temp.Loop = Word(Temp.Loop,1)
-      
-      Select
-         When wDirective = "SCHEMA" Then Do
+      If MESSAGE_LINE <> '' Then Do                 /*                  */
+         Say Message_Line                           /*                  */
+      End                                           /*                  */
+   End                                              /*                  */
+Return                                              /*                  */
+                                                    /*                  */
+ExitRC:                                             /*                  */
+                                                    /*                  */
+   Arg wRc                                          /*                  */
+   Exit wRc                                         /*                  */
+                                                    /*                  */
+Return 0                                            /*                  */
+                                                    /*                  */
+ReadFile:                                           /*                  */
+                                                    /*                  */
+/************************************************************************/
+/* Generic routine to read a file into a stem variable called wtemp.    */
+/************************************************************************/
+   Procedure Expose g.                              /*                  */
+                                                    /*                  */
+   Arg wDDname wDirective                           /* Get args         */
+                                                    /*                  */
+   wRc = 0                                          /* Set return code  */
+                                                    /*                  */
+   wSchemaInclude = ""                              /* Init             */
+   wWlmExclude = ""                                 /* Init             */
+                                                    /*                  */
+   Address TSO                                      /* Read file        */
+   "EXECIO * DISKR "||wDDname||" (STEM Temp. FINIS)"/* into wTemp       */
+   wRc = rc                                         /* Get return code  */
+                                                    /*                  */
+   If wRc <> 0 Then Call ExitRc(wRc)                /* Error            */
+                                                    /*                  */
+   Do Loop = 1 To Temp.0                            /*                  */
+      Temp.Loop = Strip(Temp.Loop)                  /* Remove blanks    */
+      If Substr(Temp.Loop,1,1) = "#" Then Iterate   /* ignore comments  */
+                                                    /*                  */
+      Temp.Loop = Word(Temp.Loop,1)                 /* Get first word   */
+                                                    /*                  */
+/************************************************************************/
+/* depending on the argument 'directive' we can either add the word     */
+/* to the wSchemaInclude string, or to the wWlmExclude string.          */
+/************************************************************************/
+                                                    /*                  */
+      Select                                        /*                  */
+         When wDirective = "SCHEMA" Then Do         /* Include          */
             wSchemaInclude = wSchemaInclude Temp.Loop
-         End
-         When wDirective = "WLMENV" Then Do
-            wWlmExclude = wWlmExclude Temp.Loop
-         End
-      End
-   
-If wDirective = "SCHEMA" Then Return wSchemaInclude
-Else Return wWlmExclude
+         End                                        /*                  */
+         When wDirective = "WLMENV" Then Do         /* Exclude          */
+            wWlmExclude = wWlmExclude Temp.Loop     /*                  */
+         End                                        /*                  */
+      End                                           /*                  */
+                                                    /*                  */
+/************************************************************************/
+/* Either return the include or exclude string depending on the value   */
+/* of wDirective.                                                       */
+/************************************************************************/
+
+   If wDirective = "SCHEMA" Then Return wSchemaInclude
+                            Else Return wWlmExclude                             
