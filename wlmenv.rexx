@@ -272,65 +272,6 @@ ExecuteCommand:                                     /*                  */
 Return MaxCC                                        /*                  */
                                                     /*                  */
 /************************************************************************/
-/* Show the SQLCA                                                       */
-/************************************************************************/
-                                                    /*                  */
-ShowSQLCA:                                          /*                  */
-                                                    /*                  */
-   Numeric Digits 80                                /*                  */
-                                                    /*                  */
-   If Right(SQLERRMC,1) <> 'FF'X Then Do            /*                  */
-      SQLERRMC = Left(SQLERRMC,69) || 'FF'X         /*                  */
-   End                                              /*                  */
-                                                    /*                  */
-   If SQLWARNA <> 'W' | SQLWARNA = 'SQLWARNA' Then SQLWARNA = ' '
-                                                    /*                  */
-   SQLCA = 'SQLCA   '||,                            /*                  */
-      X2C(D2X(136,8))||,                            /*                  */
-      X2C(D2X(SQLCODE,8))||,                        /*                  */
-      X2C(D2X(Length(SQLERRMC),4))||,SQLERRMC      ,/*                  */
-      Left(SQLERRP,8)||,                            /*                  */
-      X2C(D2X(SQLERRD.1,8))||,                      /*                  */
-      X2C(D2X(SQLERRD.2,8))||,                      /*                  */
-      X2C(D2X(SQLERRD.3,8))||,                      /*                  */
-      X2C(D2X(SQLERRD.4,8))||,                      /*                  */
-      X2C(D2X(SQLERRD.5,8))||,                      /*                  */
-      X2C(D2X(SQLERRD.6,8))||,                      /*                  */   
-      Left(SQLWARN.1,1)||,                          /*                  */
-      Left(SQLWARN.1,2)||,                          /*                  */
-      Left(SQLWARN.1,3)||,                          /*                  */
-      Left(SQLWARN.1,4)||,                          /*                  */
-      Left(SQLWARN.1,5)||,                          /*                  */
-      Left(SQLWARN.1,6)||,                          /*                  */
-      Left(SQLWARN.1,7)||,                          /*                  */
-      Left(SQLWARN.1,8)||,                          /*                  */
-      Left(SQLWARN.1,9)||,                          /*                  */
-      Left(SQLWARN.1,10)||,                         /*                  */                        
-      Left(SQLWARNA.1)||,                           /*                  */
-      Left(SQLSTATE,5)||                            /*                  */
-                                                    /*                  */
-   MESSAGE_LLEN = 79                                /*                  */
-   MESSAGE_LINES = 12                               /*                  */
-   MESSAGE_AREA = X2C(D2X(MESSAGE_LLEN*MESSAGE_LINES,4))||,
-      Copies(' ',MESSAGE_LLEN*MESSAGE_LINES)        /*                  */
-   MESSAGE_LRECL = X2C(D2X(MESSAGE_LLEN,8))         /*                  */
-                                                    /*                  */
-   Address LINKPGM "DSNTIAR SQLCA MESSAGE_AREA MESSAGE_LRECL"
-                                                    /*                  */
-   MESSAGE_LINE_START = 3                           /*                  */
-                                                    /*                  */
-   Do Loop = 1 To MESSAGE_LINES                     /*                  */
-      MESSAGE.LINE = ,                              /*                  */
-      Substr(MESSAGE_AREA,MESSAGE_LINE_START,MESSAGE_LLEN)
-      MESSAGE_LINE_START = MESSAGE_LINE_START + MESSAGE_LLEN
-      If MESSAGE_LINE <> '' Then Do                 /*                  */
-         Say Message_Line                           /*                  */
-      End                                           /*                  */
-   End                                              /*                  */
-                                                    /*                  */
-Return                                              /*                  */
-                                                    /*                  */
-/************************************************************************/
 /* Generic exit routine.                                                */
 /************************************************************************/
                                                     /*                  */
@@ -386,6 +327,90 @@ ReadFile:                                           /*                  */
 /* Either return the include or exclude string depending on the value   */
 /* of wDirective.                                                       */
 /************************************************************************/
-
+                                                    /*                  */
    If wDirective = "SCHEMA" Then Return wSchemaInclude
-                            Else Return wWlmExclude                             
+                            Else Return wWlmExclude /*                  */                             
+ShowSQLCA:                                          /*                  */
+                                                    /*                  */
+/************************************************************************/
+/* Show the SQLCA                                                       */
+/************************************************************************/
+                                                    /*                  */
+   Numeric Digits 80                                /*                  */
+                                                    /*                  */
+   If Right(SQLERRMC,1) <> 'FF'X Then Do            /*                  */
+      SQLERRMC = Left(SQLERRMC,69) || 'FF'X         /*                  */
+   End                                              /*                  */
+                                                    /*                  */
+   If SQLWARNA <> 'W' | SQLWARNA = 'SQLWARNA' Then SQLWARNA = ' '
+                                                    /*                  */
+   SQLCA = 'SQLCA   '||,                            /*                  */
+      X2C(D2X(136,8))||,                            /*                  */
+      X2C(D2X(SQLCODE,8))||,                        /*                  */
+      X2C(D2X(Length(SQLERRMC),4))||,SQLERRMC      ,/*                  */
+      Left(SQLERRP,8)||,                            /*                  */
+      X2C(D2X(SQLERRD.1,8))||,                      /*                  */
+      X2C(D2X(SQLERRD.2,8))||,                      /*                  */
+      X2C(D2X(SQLERRD.3,8))||,                      /*                  */
+      X2C(D2X(SQLERRD.4,8))||,                      /*                  */
+      X2C(D2X(SQLERRD.5,8))||,                      /*                  */
+      X2C(D2X(SQLERRD.6,8))||,                      /*                  */   
+      Left(SQLWARN.1,1)||,                          /*                  */
+      Left(SQLWARN.1,2)||,                          /*                  */
+      Left(SQLWARN.1,3)||,                          /*                  */
+      Left(SQLWARN.1,4)||,                          /*                  */
+      Left(SQLWARN.1,5)||,                          /*                  */
+      Left(SQLWARN.1,6)||,                          /*                  */
+      Left(SQLWARN.1,7)||,                          /*                  */
+      Left(SQLWARN.1,8)||,                          /*                  */
+      Left(SQLWARN.1,9)||,                          /*                  */
+      Left(SQLWARN.1,10)||,                         /*                  */                        
+      Left(SQLWARNA.1)||,                           /*                  */
+      Left(SQLSTATE,5)||                            /*                  */
+                                                    /*                  */
+   MESSAGE_LLEN = 79                                /*                  */
+   MESSAGE_LINES = 12                               /*                  */
+   MESSAGE_AREA = X2C(D2X(MESSAGE_LLEN*MESSAGE_LINES,4))||,
+      Copies(' ',MESSAGE_LLEN*MESSAGE_LINES)        /*                  */
+   MESSAGE_LRECL = X2C(D2X(MESSAGE_LLEN,8))         /*                  */
+                                                    /*                  */
+   Address LINKPGM "DSNTIAR SQLCA MESSAGE_AREA MESSAGE_LRECL"
+                                                    /*                  */
+   MESSAGE_LINE_START = 3                           /*                  */
+                                                    /*                  */
+   Do Loop = 1 To MESSAGE_LINES                     /*                  */
+      MESSAGE.LINE = ,                              /*                  */
+      Substr(MESSAGE_AREA,MESSAGE_LINE_START,MESSAGE_LLEN)
+      MESSAGE_LINE_START = MESSAGE_LINE_START + MESSAGE_LLEN
+      If MESSAGE_LINE <> '' Then Do                 /*                  */
+         Say Message_Line                           /*                  */
+      End                                           /*                  */
+   End                                              /*                  */
+                                                    /*                  */
+Return 0                                            /*                  */
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
