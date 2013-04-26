@@ -1,0 +1,79 @@
+/* REXX
+
+   Exec Name: RXMVSCMD
+
+   Function : REXX/SDSF interface that can be used to issue MVS console
+              commands and display any output that they generate.
+
+   Returns  : Nothing.
+
+   Copyright: (C)2013 Kenny Fogarty
+
+   Change Log
+
+   YY/MM/DD VER  WHAT
+   -------------------------------------------------------------------
+   13/04/26 1.00 First implementation.
+*/
+   Trace ('O')
+
+   Debug = 0                              /* Debug mode on/off switch */
+   wRc = 0                                /* Generic return code      */
+
+   Arg wCmd
+   If Strip(wCmd) = "" Then Do
+      wRc = ExitRc(wRc)
+   End
+   If Debug Then Do
+      Say "COMMAND PASSED :"||wCmd
+   End
+   wRc = ISFCALLS("ON")
+   Select
+      When wRc = 0 Then NOP
+      When wRc = 1 Then Do
+         Say "QUERY FAILED, ENVIRONMENT NOT ADDED."
+      End
+      When wRc = 2 Then Do
+         Say "ADD FAILED."
+      End
+      When wRc = 3 Then Do
+         Say "DELETE FAILED."
+      End
+      Otherwise Do
+         Say "UNRECOGNISED CODE FROM ISFCALLS(ON): "||wRc||"."
+      End
+   End
+   If wRc <> 0 Then Do
+      Say "ERROR ADDING SDSF HOST COMMAND ENVIRONMENT."
+      Say "RETURN CODE = "||wRc||"."
+      wRc = ExitRc(wRc)
+   End
+/*
+   Set up REXX/SDSF interface, generate CONSOLE name, issue commmand
+   via ISFSLASH.
+*/
+   wCOMMAND.0 = 1
+   wCOMMAND.1 = wCmd
+
+   ISFCONS  = "RX"||Time(S)
+   Address SDSF ISFSLASH "("||wCOMMAND.||") (VERBOSE)"
+
+   If Debug Then Do
+      Say "ISFMSG         :"||ISFMSG
+      Say "ISFMSG2.0      :"||ISFMSG2.0
+      If Datatype(ISFMSG2.0) = "NUM" Then Do
+         Do Loop = 1 To ISFMSG2.0
+            Say "ISFMSG2."||Loop||"      :"ISFMSG2.Loop
+         End
+      End
+   End
+   Say ""
+
+   Do Loop = 1 To ISFULOG.0
+      Say ISFULOG.Loop
+   End
+   wRc = ISFCALLS("OFF")
+
+ExitRc:
+   Exit wRc
+Return
