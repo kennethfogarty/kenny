@@ -1,0 +1,8 @@
+//*
+//*---------------------------------------------------------------------
+//* EXECUTE VARIOUS MVS CONSOLE COMMANDS VIA RXMVSCMD
+//*---------------------------------------------------------------------
+//*
+//S0010    EXEC CONSCMD,CMD='D XCF'
+//S0020    EXEC CONSCMD,CMD='F xxxxIRLM,STATUS,ALLD'
+//S0030    EXEC CONSCMD,CMD='D GRS,C'
