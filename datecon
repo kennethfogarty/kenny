@@ -1,0 +1,13 @@
+/* REXX
+
+   Playing about with REXX to generate a date conversion function
+   
+*/
+
+JulianDate = '11161'
+Say JulianDate
+BaseDate = Date('B',JulianDate,'J) /* Convert Julian date to REXX Base date format */
+Say BaseDate
+NormalDate = Date('N',BaseDate,'B') /* Convert Base date to REXX Normal format */
+Say Normal Date
+Exit
