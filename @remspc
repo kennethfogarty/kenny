@@ -1,0 +1,16 @@
+/* REXX
+
+   Exec Name: @REMSPC
+   Function : ISPFEDIT Macro to remove all blank lines from a file.
+   Returns  : Nothing
+   
+   Change Log
+   DD/MM/YY  Who    What
+   26/04/06  KF     First implementation
+   
+*/
+
+Address ISREDIT "MACRO PROCESS"
+Address ISREDIT "X ALL P'¬'"
+Address ISREDIT "DELETE ALL NX"
+Address ISREDIT "RESET"
