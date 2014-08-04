@@ -1,0 +1,60 @@
+/*-------------------------------------------------------------*/
+/* REXX                                                        */
+/* PROGRAM: DSNEDIT                                            */
+/* FUNCTION:                                                   */
+/*                                                             */
+/* THIS EDIT MACRO ALLOWS THE USER TO EDIT                     */
+/* THE DATA SET LOCATED ON THE LINE THAT THE                   */
+/* CURSOR IS ON.                                               */
+/*-------------------------------------------------------------*/
+ADDRESS ISREDIT
+"MACRO"
+ADDRESS ISPEXEC "CONTROL ERRORS RETURN"
+/***********************************************/
+/* BEGIN PROCESSING                            */
+/***********************************************/
+"(ROW,COL) = CURSOR"
+"(DATA1) = LINE " ROW                     /* DATA1 = CURSOR LINE */
+
+/* FIND START OF DATA SET NAME */
+
+DSNSTART = POS('DSN=',DATA1)              /* LOOK FOR DSN= */
+IF DSNSTART = 0 THEN DO                   /* NO DSN = */
+  DSNSTART = POS('DSNAME=',DATA1)         /* LOOK FOR DSNAME= */
+  IF DSNSTART = 0 THEN DO                 /* NO DSN= OR DSNAME= */
+    "CURSOR = " ROW COL                   /* CURSOR POS */
+    IF COL < 1 THEN DSNSTART = 1          /* NEEDED FOR ZV LINE CMD */
+    ELSE DSNSTART = COL                   /* ASSUME CURSOR ON DSN */
+  END
+  ELSE DSNSTART = DSNSTART + 7            /* DSNAME= SPECIFIED IN JCL */
+END                                       /* IF DSNSTART = 0 */
+ELSE DSNSTART = DSNSTART + 4              /* DSN = SPECIFIED IN JCL */
+
+/**********************************/
+/* FIND END OF DATA SET NAME      */
+/**********************************/
+
+DSNEND = POS(',',DATA1,DSNSTART)          /* LOOK FOR COMMA AT END OF DSN */
+IF DSNEND = 0 THEN DO                     /* NO COMMA FOUND */
+  DSNEND = POS(' ',DATA1,DSNSTART)        /* LOOK FOR BLANK TO END DSN */
+  IF DSNEND = 0 THEN DO                   /* NO BLANK OR COMMA AT END */
+    ZEDSMSG = 'NO END OF DSN'
+    ZEDLMSG = 'THE DATA SET NAME IS NOT TERMINATED WITH A' ,
+    'SPACE OR COMMA.'
+    ADDRESS ISPEXEC "SETMSG MSG(ISRZ001)" /* MSG - WITH ALARM */
+    "CURSOR = " ROW COL                   /* PUT CURSOR BACK TO LAST POSITION */
+    EXIT 8
+  END                                     /* IF DSNEND = 0 */
+  ELSE DSNEND = DSNEND - 1                /* DSN ENDS WITH BLANK */
+END                                       /* IF DSNEND = 0 */
+ELSE DSNEND = DSNEND - 1                  /* DSN ENDS WITH COMMA */
+
+/**********************************/
+/* EDIT THE DATA SET              */
+/**********************************/
+
+DSN = SUBSTR(DATA1,DSNSTART,DSNEND-DSNSTART+1) /* EXTRACT DSN */
+ADDRESS ISPEXEC "EDIT DATASET('"DSN"') CONFIRM("CONF")"
+IF RC <> 0 THEN ADDRESS ISPEXEC "SETMSG MSG("ZERRMSG")"
+"CURSOR = " ROW COL /* PUT CURSOR BACK TO LAST POSITION */
+EXIT 0 
