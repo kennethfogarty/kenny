@@ -1,0 +1,43 @@
+//* the ultimate batch compress
+//* creates a backup library first. 
+//* then deletes the backup last, if all worked 
+//ERASE    EXEC PGM=IEFBR14
+//OUTPDS    DD DSN=your-id.name-of-backup-lib,DISP=(MOD,DELETE),
+//          UNIT=SYSDA,SPACE=(TRK,0)
+//*
+//COPY     EXEC PGM=IEBCOPY
+//SYSPRINT  DD  SYSOUT=*
+//SYSIN     DD  *
+ COPY INDD=INPDS,OUTDD=OUTPDS
+/*
+//INPDS     DD DSN=library-to-be-compressed,DISP=SHR
+//OUTPDS    DD DSN=your-id.name-of-backup-lib,REFDD=*.INPDS,
+//          UNIT=SYSDA,  or your disk unit,
+//          DISP=(NEW,CATLG,DELETE),
+//          SPACE=(TRK,(100,10,50),RLSE)
+//*
+//* produce jcl error if the previous step failed
+//JCLOUT   EXEC PGM=IEFBR14,COND=(0,EQ,COPY)
+//DD1      DD   DSN=NOT.THERE,DISP=SHR
+//*
+//* this will do the compress
+//COMPRESS EXEC PGM=IEBCOPY
+//SYSPRINT  DD  SYSOUT=*
+//SYSIN     DD  *
+ COPY INDD=INPDS,OUTDD=INPDS
+/*
+//INPDS     DD DSN=library-to-be-compressed,DISP=SHR
+//*
+//* if compress fails, send tso message 
+//         IF (RC GT 0) THEN
+//TSOBATCH EXEC PGM=IKJEFT1A,DYNAMNBR=200,COND=(0,LT)
+//SYSPRINT DD   SYSOUT=*
+//SYSTSPRT DD   SYSOUT=*
+//SYSTSIN  DD *
+PROFILE PREFIX(your-id)
+SEND 'COMPRESS FAILED library-to-be-compressed' USER(your-id) LOGON WAIT
+//        ELSE
+//ERASE    EXEC PGM=IEFBR14,COND=(0,LE)
+//OUTPDS   DD  DSN=your-id.name-of-backup-lib,DISP=(MOD,DELETE),
+//         UNIT=SYSDA,SPACE=(TRK,0)
+//        ENDIF
