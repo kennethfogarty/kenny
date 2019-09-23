@@ -1,0 +1,62 @@
+Parse Source . howcalled  module . mod_lib .
+Parse Arg parm .
+If mod_lib = "?" Then mod_lib = find_origin()
+
+
+FIND_ORIGIN: Procedure                 /*@                           */
+
+answer="* UNKNOWN *"                   /* assume disaster            */
+Parse Source . . name dd ds .          /* get known info             */
+Call Listdsi(dd "FILE")                /* get 1st ddname from file   */
+Numeric digits 10                      /* allow up to 7FFFFFFF       */
+If name = "?" Then                     /* if sequential exec         */
+  answer="'"ds"'"                      /* use info from parse source */
+Else                                   /* now test for members       */
+  If sysdsn("'"sysdsname"("name")'")="OK" Then /* if in 1st ds       */
+     answer="'"sysdsname"("name")'"    /* go no further              */
+  Else                                 /* hooboy| Lets have some fun|*/
+    Do                                 /* scan tiot for the ddname   */
+      tiotptr=24+ptr(12+ptr(ptr(ptr(16)))) /* get ddname array       */
+      tioelngh=c2d(stg(tiotptr,1))     /* nength of 1st entry        */
+      Do Until tioelngh=0 | tioeddnm = dd /* scan until dd found     */
+        tioeddnm=Strip(stg(tiotptr+4,8)) /* get ddname from tiot     */
+        If tioeddnm <> dd Then         /* if not a match             */
+          tiotptr=tiotptr+tioelngh     /* advance to next entry      */
+        tioelngh=c2d(stg(tiotptr,1))   /* length of next entry       */
+      End
+      If dd=tioeddnm Then,             /* if we found it, loop through
+                                          the data sets doing an swareq
+                                          for each one to get the
+                                          dsname                     */
+        Do Until tioelngh=0 | stg(4+tiotptr,1)<> " "
+          tioejfcb=stg(tiotptr+12,3)
+          jfcb=swareq(tioejfcb)        /* convert SVA to 31-bit addr */
+          dsn=strip(stg(jfcb,44))      /* dsname JFCBDSNM            */
+          vol=storage(d2x(jfcb+118),6) /* volser JFCBVOLS (not used) */
+          If sysdsn("'"dsn"("name")'")='OK' Then,  /* found it?      */
+            Leave                      /* we is some happy campers|  */
+          tiotptr=tiotptr+tioelngh     /* get next entry             */
+          tioelngh=c2d(stg(tiotptr,1)) /* get entry length           */
+        End
+      answer="'"dsn"("name")'"         /* assume we found it         */
+    End
+Return answer                          /*@ FIND_ORIGIN               */
+/* ----------------------------------------------------------------- */
+ptr:  Return c2d(storage(d2x(Arg(1)),4))          /*@                */
+/* ----------------------------------------------------------------- */
+stg:  Return storage(d2x(Arg(1)),Arg(2))          /*@                */
+/* ----------------------------------------------------------------- */
+SWAREQ:  Procedure                     /*@                           */
+If right(c2x(Arg(1)),1) \= 'F' Then    /* SWA=BELOW ?                */
+  Return c2d(Arg(1))+16                /* yes, return sva+16         */
+sva = c2d(Arg(1))                      /* convert to decimal         */
+tcb = c2d(storage(21c,4))              /* TCB PSATOLD                */
+tcb = ptr(540)                         /* TCB PSATOLD                */
+jscb = ptr(tcb+180)                    /* JSCB TCBJSCB               */
+qmpl = ptr(jscb+244)                   /* QMPL JSCBQMPI              */
+qmat = ptr(qmpl+24)                    /* QMAT QMADD                 */
+Do While sva>65536
+  qmat = ptr(qmat+12)                  /* next QMAT QMAT+12          */
+  sva=sva-65536                        /* 010006F -> 000006F         */
+End
+Return ptr(qmat+sva+1)+16              /*@ SWAREQ                    */
