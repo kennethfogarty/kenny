@@ -1,0 +1,19 @@
+------------------------------------------------------------------------ 
+-- QUERY TO LIST LIMIT-KEY COLS/VALUES
+------------------------------------------------------------------------
+SELECT   SUBSTR(T.CREATOR,1,4) AS CREATOR
+       , CAST(T.NAME AS CHAR(30)) AS TBL_NAME
+       , SUBSTR(S.TSNAME,1,8) AS TSNAME
+       , S.PARTITION
+       , S.LOGICAL_PART
+       , T.PARTKEYCOLNUM AS LKEY_COLS
+       , S.LIMITKEY
+    FROM SYSIBM.SYSTABLES    T
+    JOIN SYSIBM.SYSTABLEPART S
+      ON T.DBNAME = S.DBNAME
+     AND T.TSNAME = S.TSNAME
+   WHERE T.CREATOR = '<MY_USERID>'
+     AND T.NAME = '<TABLE_NAME>'
+     AND T.TYPE = 'T'
+ORDER BY T.NAME, S.LOGICAL_PART
+FOR FETCH ONLY WITH UR;
