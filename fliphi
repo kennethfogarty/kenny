@@ -1,0 +1,21 @@
+/* 
+REXX 
+Flip the high order bit of a binary string and return the result
+*/
+
+Arg ModuleAddress
+FlippedAddress = FlipAddress(ModuleAddress)
+Say "FLIPPED ADDRESS:"||FlippedAddress
+Exit
+
+FlipAddress:
+Procedure
+Arg ModuleAddress
+BinaryString = X2B(ModuleAddress)
+HiOrderBit = Substr(BinaryString,1,1)
+LoOrderBits = Substr(BinaryString,2,Length(BinaryString))
+If HiOrderBit = "1" Then HiOrderBit = Translate(HiOrderBit,"0","1")
+   Else
+   HiOrderBit = Translate(HiOrderBit,"1",0)
+FlippedAddress = B2X(Strip(HiOrderBit||LoOrderBits))
+Return FlippedAdress
